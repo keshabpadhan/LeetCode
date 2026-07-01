@@ -5,10 +5,12 @@ A collection of LeetCode questions to ace the coding interview! - Created using 
 |  |
 | ------- |
 | [1189-maximum-number-of-balloons](https://github.com/keshabpadhan/LeetCode/tree/master/1189-maximum-number-of-balloons) |
+| [1358-number-of-substrings-containing-all-three-characters](https://github.com/keshabpadhan/LeetCode/tree/master/1358-number-of-substrings-containing-all-three-characters) |
 ## String
 |  |
 | ------- |
 | [1189-maximum-number-of-balloons](https://github.com/keshabpadhan/LeetCode/tree/master/1189-maximum-number-of-balloons) |
+| [1358-number-of-substrings-containing-all-three-characters](https://github.com/keshabpadhan/LeetCode/tree/master/1358-number-of-substrings-containing-all-three-characters) |
 ## Counting
 |  |
 | ------- |
@@ -37,4 +39,8 @@ A collection of LeetCode questions to ace the coding interview! - Created using 
 |  |
 | ------- |
 | [2812-find-the-safest-path-in-a-grid](https://github.com/keshabpadhan/LeetCode/tree/master/2812-find-the-safest-path-in-a-grid) |
+## Sliding Window
+|  |
+| ------- |
+| [1358-number-of-substrings-containing-all-three-characters](https://github.com/keshabpadhan/LeetCode/tree/master/1358-number-of-substrings-containing-all-three-characters) |
 <!---LeetCode Topics End-->
