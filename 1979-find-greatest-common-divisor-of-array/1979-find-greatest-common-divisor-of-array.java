@@ -1,14 +1,12 @@
 class Solution {
     public int findGCD(int[] nums) {
-        int min = nums[0], max = nums[0];
-        for (int x : nums) {
-            if (x < min) min = x;
-            if (x > max) max = x;
+        int min = Arrays.stream(nums).min().getAsInt();
+        int max = Arrays.stream(nums).max().getAsInt();
+        while (min != 0) {
+            int tmp = min;
+            min = max % min;
+            max = tmp;
         }
-        return gcd(min, max);
-    }
-
-    private int gcd(int a, int b) {
-        return b == 0 ? a : gcd(b, a % b);
+        return max;
     }
 }
