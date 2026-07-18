@@ -5,8 +5,5 @@ class Solution {
         while (min != 0) {
             int tmp = min;
             min = max % min;
-            max = tmp;
-        }
-        return max;
-    }
-}
+            max = tmp;}
+        return max;}}
