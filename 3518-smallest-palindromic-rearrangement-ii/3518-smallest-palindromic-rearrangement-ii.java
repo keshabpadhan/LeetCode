@@ -1,61 +1,73 @@
 class Solution {
-    private static final int MAX = 1_000_001;
-
     public String smallestPalindrome(String s, int k) {
-        int[] cnt = new int[26];
-        for (char c : s.toCharArray()) cnt[c - 'a']++;
-
-        int[] half = new int[26];
-        char mid = 0;
-        int halfLen = 0;
-        for (int i = 0; i < 26; i++) {
-            half[i] = cnt[i] / 2;
-            halfLen += half[i];
-            if (cnt[i] % 2 == 1) mid = (char) ('a' + i);
+        int[] freq = new int[26];
+        for (char c : s.toCharArray()) {
+            freq[c - 'a']++;
         }
-
-        if (count(half) < k) return "";
-
-        StringBuilder left = new StringBuilder();
-        for (int p = 0; p < halfLen; p++) {
-            for (int i = 0; i < 26; i++) {
-                if (half[i] == 0) continue;
-                half[i]--;
-                int ways = count(half);
-                if (ways >= k) {
-                    left.append((char) ('a' + i));
-                    break;
+        
+        int[] half = new int[26];
+        StringBuilder mid = new StringBuilder();
+        int m = 0;
+        
+        for (int i = 0; i < 26; ++i) {
+            if (freq[i] % 2 != 0) {
+                mid.append((char) (i + 'a'));
+            }
+            half[i] = freq[i] / 2;
+            m += half[i];
+        }
+        
+        if (getWays(half, k) < k) {
+            return "";
+        }
+        
+        StringBuilder firstHalf = new StringBuilder();
+        for (int i = 0; i < m; ++i) {
+            for (int c = 0; c < 26; ++c) {
+                if (half[c] > 0) {
+                    half[c]--;
+                    long ways = getWays(half, k);
+                    
+                    if (ways >= k) {
+                        firstHalf.append((char) (c + 'a'));
+                        break;
+                    } else {
+                        k -= ways;
+                        half[c]++;
+                    }
                 }
-                k -= ways;
-                half[i]++;
             }
         }
-
-        String l = left.toString();
-        String r = new StringBuilder(l).reverse().toString();
-        return l + (mid == 0 ? "" : mid) + r;
+        
+        StringBuilder res = new StringBuilder(firstHalf);
+        res.append(mid);
+        res.append(firstHalf.reverse());
+        return res.toString();
     }
-
-    private int count(int[] freq) {
-        int total = 0;
-        for (int f : freq) total += f;
-        long res = 1;
-        for (int f : freq) {
-            if (f == 0) continue;
-            res = res * nCk(total, f);
-            if (res >= MAX) return MAX;
-            total -= f;
+    
+    private long getWays(int[] f, long targetK) {
+        long ways = 1;
+        int currLen = 0;
+        for (int count : f) {
+            if (count > 0) {
+                currLen += count;
+                long n = currLen;
+                long r = count;
+                
+                if (r > n - r) r = n - r;
+                long curNCr = 1;
+                
+                for (int i = 1; i <= r; ++i) {
+                    curNCr = curNCr * (n - i + 1) / i;
+                    if (curNCr > targetK) {
+                        curNCr = targetK + 1;
+                        break;
+                    }
+                }
+                ways *= curNCr;
+                if (ways > targetK) return targetK + 1;
+            }
         }
-        return (int) res;
-    }
-
-    private long nCk(int n, int k) {
-        k = Math.min(k, n - k);
-        long res = 1;
-        for (int i = 1; i <= k; i++) {
-            res = res * (n - i + 1) / i;
-            if (res >= MAX) return MAX;
-        }
-        return res;
+        return ways;
     }
 }
