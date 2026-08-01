@@ -1,14 +1,15 @@
 class Solution {
     public boolean predictTheWinner(int[] nums) {
         int n = nums.length;
-        if (n % 2 == 0) return true;
-        
-        int[] dp = nums.clone();
-        for (int i = n - 2; i >= 0; --i) {
-            for (int j = i + 1; j < n; ++j) {
-                dp[j] = Math.max(nums[i] - dp[j], nums[j] - dp[j - 1]);
+        int[] dp = new int[n];
+
+        for (int l = n - 1; l >= 0; l--) {
+            dp[l] = nums[l];
+            for (int r = l + 1; r < n; r++) {
+                dp[r] = Math.max(nums[l] - dp[r], nums[r] - dp[r - 1]);
             }
         }
+
         return dp[n - 1] >= 0;
     }
 }
