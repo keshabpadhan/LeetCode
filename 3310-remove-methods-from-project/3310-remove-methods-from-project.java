@@ -1,52 +1,51 @@
+import java.util.*;
+
 class Solution {
-    boolean outsideConnection = false;
-    int[] mark;
-
-    public List<Integer> remainingMethods(int n, int k, int[][] edges) {
-        List<Integer> res = new ArrayList<>();
-        HashMap<Integer, ArrayList<Integer>> graph = new HashMap<>();
-        mark = new int[n];
-
-        for(int[] edge : edges){
-            graph.computeIfAbsent(edge[0], x -> new ArrayList<>()).add(edge[1]);
+    public List<Integer> remainingMethods(int n, int k, int[][] invocations) {
+        List<List<Integer>> graph = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            graph.add(new ArrayList<>());
+        }
+        for (int[] inv : invocations) {
+            graph.get(inv[0]).add(inv[1]);
         }
 
-        bfs(1, graph, k);
+        boolean[] isSuspicious = new boolean[n];
+        Queue<Integer> queue = new LinkedList<>();
 
-        for(int i = 0; i < n; i++){
-            if(i == k || mark[i] == 1) continue;
-            bfs(2, graph, i);
-        }
+        // Start BFS directly from the single suspicious method 'k'
+        isSuspicious[k] = true;
+        queue.offer(k);
 
-        for(int i = 0; i < n; i++){
-            if(!outsideConnection && mark[i] == 1) continue;
-            res.add(i);
-        }
-
-        return res;
-    }
-
-    private void bfs(int color, HashMap<Integer, ArrayList<Integer>> graph, int src){
-        Queue<Integer> q = new LinkedList<>();
-        q.offer(src);
-        mark[src] = color;
-
-        while(!q.isEmpty()){
-            int node = q.poll();
-
-            if(!graph.containsKey(node)) continue;
-
-            for(int nxt : graph.get(node)){
-                if(mark[nxt] == 1 && color == 2){
-                    outsideConnection = true;
-                    return;
-                }
-
-                if(mark[nxt] != color){
-                    mark[nxt] = color;
-                    q.offer(nxt);
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            for (int neighbor : graph.get(current)) {
+                if (!isSuspicious[neighbor]) {
+                    isSuspicious[neighbor] = true;
+                    queue.offer(neighbor);
                 }
             }
         }
+
+        // Check if any non-suspicious method invokes a suspicious method
+        for (int[] inv : invocations) {
+            if (!isSuspicious[inv[0]] && isSuspicious[inv[1]]) {
+                // If a clean method calls a suspicious one, we cannot remove any
+                List<Integer> allMethods = new ArrayList<>();
+                for (int i = 0; i < n; i++) {
+                    allMethods.add(i);
+                }
+                return allMethods;
+            }
+        }
+
+        List<Integer> remaining = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (!isSuspicious[i]) {
+                remaining.add(i);
+            }
+        }
+
+        return remaining;
     }
 }
