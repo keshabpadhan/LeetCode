@@ -1,126 +1,91 @@
 class Solution {
-    int primes[] = new int[] { 2, 3, 5, 7 };
-    int maxPrime = primes[primes.length - 1];
+    private static final int[] C2 = {0, 0, 1, 0, 2, 0, 1, 0, 3, 0};
+    private static final int[] C3 = {0, 0, 0, 1, 0, 0, 1, 0, 0, 2};
+    private static final int[] C5 = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0};
+    private static final int[] C7 = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
 
     public String smallestNumber(String num, long t) {
-        int primeCount[] = new int[maxPrime + 1];
-        int numLength = num.length();
-        int minLength;
-        int firstZeroIndexFromLeft = 0;
+        long x = t;
+        int a = 0, b = 0, c = 0, d = 0;
+        while (x % 2 == 0) { a++; x /= 2; }
+        while (x % 3 == 0) { b++; x /= 3; }
+        while (x % 5 == 0) { c++; x /= 5; }
+        while (x % 7 == 0) { d++; x /= 7; }
+        if (x != 1) return "-1";
 
-        for (int prime : primes) {
-            while (t % prime == 0) {
-                t /= prime;
-                primeCount[prime]++;
-            }
+        int L = num.length();
+        char[] s = num.toCharArray();
+        int[] p2 = new int[L + 1], p3 = new int[L + 1], p5 = new int[L + 1], p7 = new int[L + 1];
+        boolean[] hasZero = new boolean[L + 1];
+        for (int i = 0; i < L; i++) {
+            int dig = s[i] - '0';
+            p2[i + 1] = p2[i] + C2[dig];
+            p3[i + 1] = p3[i] + C3[dig];
+            p5[i + 1] = p5[i] + C5[dig];
+            p7[i + 1] = p7[i] + C7[dig];
+            hasZero[i + 1] = hasZero[i] || (dig == 0);
         }
 
-        if (t != 1) {
-            return "-1";
-        }
+        if (!hasZero[L] && p2[L] >= a && p3[L] >= b && p5[L] >= c && p7[L] >= d)
+            return num;
 
-        minLength = getMinLength(primeCount);
-
-        if (numLength < minLength) {
-            return buildSuffix(primeCount, minLength, new char[minLength]);
-        }
-
-        char[] result = new char[numLength + 1];
-
-        for (int i = 0; firstZeroIndexFromLeft < numLength
-                && (result[++i] = num.charAt(firstZeroIndexFromLeft)) != '0'; firstZeroIndexFromLeft++) {
-            logNum(primeCount, result[i], -1);
-        }
-
-        if (getMinLength(primeCount) == 0) {
-            if (firstZeroIndexFromLeft == numLength) {
-                return num;
-            }
-            Arrays.fill(result, ++firstZeroIndexFromLeft, result.length, '1');
-            return new String(result, 1, numLength);
-        }
-
-        for (int last = numLength - 1, end = Math.min(firstZeroIndexFromLeft, last); end >= 0; end--) {
-            for (logNum(primeCount, result[end + 1], 1); ++result[end + 1] <= '9'; logNum(primeCount, result[end + 1], 1)) {
-                logNum(primeCount, result[end + 1], -1);
-                if (getMinLength(primeCount) <= last - end) {
-                    return buildSuffix(primeCount, last - end, result);
+        for (int i = L - 1; i >= 0; i--) {
+            if (hasZero[i]) continue;
+            int cur = s[i] - '0';
+            int need2 = Math.max(0, a - p2[i]);
+            int need3 = Math.max(0, b - p3[i]);
+            int need5 = Math.max(0, c - p5[i]);
+            int need7 = Math.max(0, d - p7[i]);
+            int suffixLen = L - 1 - i;
+            for (int dig = cur + 1; dig <= 9; dig++) {
+                int n2 = Math.max(0, need2 - C2[dig]);
+                int n3 = Math.max(0, need3 - C3[dig]);
+                int n5 = Math.max(0, need5 - C5[dig]);
+                int n7 = Math.max(0, need7 - C7[dig]);
+                if (feasible(n2, n3, n5, n7, suffixLen)) {
+                    StringBuilder sb = new StringBuilder();
+                    if (i > 0) sb.append(num, 0, i);
+                    sb.append((char) ('0' + dig));
+                    sb.append(minFill(n2, n3, n5, n7, suffixLen));
+                    return sb.toString();
                 }
             }
         }
 
-        return buildSuffix(primeCount, result.length, result);
+        int minDigits = minDigits(a, b) + c + d;
+        return minFill(a, b, c, d, Math.max(L + 1, minDigits));
     }
 
-    void logNum(int[] primeCount, int num, int value) {
-        if (num < '2') return;
-
-        if (num == '9') primeCount[3] += value << 1;
-        else if (num == '4') primeCount[2] += value << 1;
-        else if (num == '8') primeCount[2] += value * 3;
-        else if (num == '6') {
-            primeCount[2] += value;
-            primeCount[3] += value;
-        } else {
-            primeCount[num - '0'] += value;
+    private static int minDigits(int r2, int r3) {
+        int best = Integer.MAX_VALUE;
+        for (int z = 0; z <= Math.min(r2, r3); z++) {
+            int eights = (r2 - z + 2) / 3;   // ceil((r2 - z)/3)  → digit 8 = 2³
+            int nines  = (r3 - z + 1) / 2;   // ceil((r3 - z)/2)  → digit 9 = 3²
+            best = Math.min(best, z + eights + nines); // z digit-6s give (1,1) each
         }
+        return best;
     }
 
-    String buildSuffix(int[] primeCount, int targetLength, char[] result) {
-        int index = result.length;
-
-        while (primeCount[3] > 1) {
-            primeCount[3] -= 2;
-            result[--index] = '9';
-        }
-
-        while (primeCount[2] > 2) {
-            primeCount[2] -= 3;
-            result[--index] = '8';
-        }
-
-        while (primeCount[7]-- > 0) result[--index] = '7';
-
-        if (primeCount[2] > 0 && primeCount[3] > 0) {
-            result[--index] = '6';
-            primeCount[2]--;
-            primeCount[3]--;
-        }
-
-        while (primeCount[5]-- > 0) result[--index] = '5';
-
-        while (primeCount[2] > 1) {
-            primeCount[2] -= 2;
-            result[--index] = '4';
-        }
-
-        while (primeCount[3] > 0) {
-            primeCount[3]--;
-            result[--index] = '3';
-        }
-
-        while (primeCount[2] > 0) {
-            primeCount[2]--;
-            result[--index] = '2';
-        }
-
-        while (index + targetLength != result.length) {
-            result[--index] = '1';
-        }
-
-        return targetLength == result.length
-                ? new String(result)
-                : new String(result, 1, result.length - 1);
+    private static boolean feasible(int r2, int r3, int r5, int r7, int m) {
+        return r5 + r7 <= m && minDigits(r2, r3) <= m - r5 - r7;
     }
 
-    int getMinLength(int[] primeCount) {
-        int count2 = Math.max(0, primeCount[2]);
-        int count3 = Math.max(0, primeCount[3]);
-        int count23 = (count3 & 1) + (count2 % 3);
-
-        return (count3 >> 1) + (count2 / 3)
-                + Math.max(0, primeCount[7])
-                + Math.max(0, primeCount[5])
-                + (count23 == 3 ? 2 : count23 > 0 ? 1 : 0);
+    private static String minFill(int r2, int r3, int r5, int r7, int m) {
+        StringBuilder sb = new StringBuilder(m);
+        for (int pos = 0; pos < m; pos++) {
+            int left = m - pos - 1;
+            for (int dig = 1; dig <= 9; dig++) {
+                int n2 = Math.max(0, r2 - C2[dig]);
+                int n3 = Math.max(0, r3 - C3[dig]);
+                int n5 = Math.max(0, r5 - C5[dig]);
+                int n7 = Math.max(0, r7 - C7[dig]);
+                if (feasible(n2, n3, n5, n7, left)) {
+                    sb.append((char) ('0' + dig));
+                    r2 = n2; r3 = n3; r5 = n5; r7 = n7;
+                    break;
+                }
+            }
+        }
+        return sb.toString();
     }
 }
