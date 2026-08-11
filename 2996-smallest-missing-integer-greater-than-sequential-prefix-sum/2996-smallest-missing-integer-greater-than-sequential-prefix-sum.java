@@ -1,32 +1,26 @@
 class Solution {
     public int missingInteger(int[] nums) {
-        int n = nums.length;
-
-        int sequentialSum = nums[0];
-
-        // Find sequential prefix sum
-        for(int i = 1; i < n; i++){
-            if(nums[i] == nums[i - 1] + 1)
-                sequentialSum += nums[i];
-            else
+        // Step 1: Find the longest sequential prefix and its sum
+        int sum = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == nums[i - 1] + 1) {
+                sum += nums[i];
+            } else {
                 break;
-        }
-
-        // Brute force search
-        while(true){
-            boolean found = false;
-
-            for(int num : nums){
-                if(num == sequentialSum){
-                    found = true;
-                    break;
-                }
             }
-
-            if(!found)
-                return sequentialSum;
-
-            sequentialSum++;
         }
+
+        // Step 2: Find the smallest missing integer >= sum
+        Set<Integer> numSet = new HashSet<>();
+        for (int num : nums) {
+            numSet.add(num);
+        }
+
+        int x = sum;
+        while (numSet.contains(x)) {
+            x++;
+        }
+
+        return x;
     }
 }
