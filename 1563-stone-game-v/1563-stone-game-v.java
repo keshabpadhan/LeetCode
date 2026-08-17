@@ -1,40 +1,39 @@
 class Solution {
-    public int stoneGameV(int[] stoneValue) {
-        int n = stoneValue.length;
+    private long[][] dp;
 
-        if(n == 1) return 0;
-
-        int[] prefix = new int[n+1];
-
-        for(int i = 0; i<n; i++){
-            prefix[i+1] = prefix[i] + stoneValue[i];
-        }
-
-        int[][] dp = new int[n][n];
-
-        for(int len = 2; len<=n; len++){
-            for(int i = 0; i + len - 1<n; i++){
-                int j = i + len - 1;
-                int best = 0;
-                int curr;
-                for(int k = i; k<j; k++){
-                    int leftSum = prefix[k+1] - prefix[i];
-                    int rightSum = prefix[j+1] - prefix[k+1];
-                    
-                    if(leftSum < rightSum){
-                        curr = leftSum + dp[i][k];
-                    }else if(leftSum > rightSum){
-                        curr = rightSum + dp[k+1][j];
-                    }else{
-                        curr = leftSum + Math.max(dp[i][k], dp[k+1][j]);
-                    }
-                    best = Math.max(best, curr);
-                }
-
-                dp[i][j] = best;
+    private long f(long[] sum, int i, int j) {
+        if (i == j) return 0;
+        if (dp[i][j] != -1) return dp[i][j];
+        
+        long ans = 0;
+        for (int k = i; k < j; k++) {
+            long firstRowSum = sum[k] - (i > 0 ? sum[i - 1] : 0);
+            long secondRowSum = sum[j] - sum[k];
+            
+            if (firstRowSum > secondRowSum) {
+                ans = Math.max(ans, secondRowSum + f(sum, k + 1, j));
+            } else if (firstRowSum < secondRowSum) {
+                ans = Math.max(ans, firstRowSum + f(sum, i, k));
+            } else {
+                ans = Math.max(ans, Math.max(secondRowSum + f(sum, k + 1, j), firstRowSum + f(sum, i, k)));
             }
         }
+        return dp[i][j] = ans;
+    }
 
-        return dp[0][n-1];
+    public int stoneGameV(int[] stoneValue) {
+        int n = stoneValue.length;
+        dp = new long[n][n];
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(dp[i], -1);
+        }
+        
+        long[] sum = new long[n];
+        for (int i = 0; i < n; i++) {
+            sum[i] = stoneValue[i];
+            if (i > 0) sum[i] += sum[i - 1];
+        }
+        
+        return (int) f(sum, 0, n - 1);
     }
 }
